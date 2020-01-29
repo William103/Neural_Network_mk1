@@ -8,7 +8,9 @@ class Node:
     #               activation: the activation of the neuron
     #               input: the input, for back propagation reasons
     #               delta: error signal, also for back propogation
-    #               children: a list of tuples containing the other node as well
+    #               children: a list of tuples containing the child node as well
+    #                           as the weight to the node
+    #               parents: a list of tuples containing the parent node as well
     #                           as the weight to the node
     def __init__(self, f_activation, d_f_activation):
         self.f_activation = f_activation
@@ -18,12 +20,15 @@ class Node:
         self.input = 0
         self.delta = 0
         self.children = []
+        self.parents = []
 
     # actually create the children. This would go in __init__, but then it would
     # be impossible to create a neuron without already having a neuron
     def create_children(self, children):
         for child in children:
-            self.children.append((child, np.random.random() - 0.5))
+            weight = np.random.random() - 0.5
+            self.children.append((child, weight))
+            child.parents.append((self, weight))
 
     # Finishes forward propogation on itself (applying activation function and
     # bias) and calculates its contribution to its children nodes
