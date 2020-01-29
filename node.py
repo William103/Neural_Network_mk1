@@ -1,5 +1,9 @@
 import numpy as np
 
+class Connection:
+    def __init__(self, weight):
+        self.weight = weight
+
 # General node class to be used for normal neural networks, NEAT, or RNNs
 class Node:
     # Has members f_activation: activation function
@@ -26,7 +30,7 @@ class Node:
     # be impossible to create a neuron without already having a neuron
     def create_children(self, children):
         for child in children:
-            weight = np.random.random() - 0.5
+            weight = Connection(np.random.random() - 0.5)
             self.children.append((child, weight))
             child.parents.append((self, weight))
 
@@ -37,4 +41,19 @@ class Node:
             self.activation = self.f_activation(self.input + self.bias)
         if len(self.children) > 0:
             for child, weight in self.children:
-                child.input += self.activation * weight
+                child.input += self.activation * weight.weight
+
+    # d_error is the derivative of the cost function with respect to the
+    # activation of the output neuron
+    def backprop(self, is_last_layer, d_error, training_rate):
+        # self.delta is the chain rule product up to the given neuron
+        if is_last_layer:
+            self.delta = d_error
+        else:
+            self.delta = 0
+            for child in children:
+                self.delta += child[0].delta * child[1].weight
+        self.delta *= self.d_f_activation(self.input + self.bias)
+        self.bias -= training_rate * self.delta
+        for child in self.child:
+            child[1].weight -= training_rate * self.activation * child[0].delta

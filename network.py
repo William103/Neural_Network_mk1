@@ -13,13 +13,21 @@ def relu(x):
 def d_relu(x):
     return 1 if x > 0 else 0
 
+def squared_error(y_hat, y):
+    return (y_hat - y) * (y_hat - y)
+
+def d_squared_error(y_hat, y):
+    return 2 * (y - y_hat)
+
 # Simple Feed Forward Neural Network
 class FeedForwardNetwork:
     # architecture: a list describing the architecture
     # f_activations: a list of the activation functions
     # d_f_activations: a list of the derivatives of the activation functions
-    def __init__(self, architecture, f_activations, d_f_activations):
+    def __init__(self, architecture, f_activations, d_f_activations, f_cost, d_f_cost):
         self.layers = []
+        self.d_f_cost = d_f_cost
+        self.f_cost = f_cost
         # iterate through the architecture, adding lists of neurons of the right
         # length, with the right activation functions
         for i, layer in enumerate(architecture):
@@ -45,3 +53,26 @@ class FeedForwardNetwork:
         for neuron in self.layers[-1]:
             retval.append(neuron.activation)
         return retval
+
+    def backprop(self, training_rate, errors):
+        for i in range(len(self.layers) - 1, -1, -1):
+            if i == len(self.layers) - 1:
+                for j, neuron in enumerate(self.layers[i]):
+                    neuron.backprop(True, errors[j], training_rate)
+            else:
+                for neuron in self.layers[i]:
+                    neuron.backprop(False, 0, training_rate)
+
+    def train(self, inputs, outputs, training_rate, epochs, batch_size):
+        assert(len(inputs) % batch_size == 0, "Batch size must divide inputs")
+        for i in range(epochs):
+            d_errors = [0] * len(self.layers[-1])
+            for j in range(len(inputs)):
+                output = self.prop(inputs[j])
+                for k in range(len(d_errors)):
+                    d_errors[k] += self.d_f_cost(output[k], outputs[j][k])
+                if (j + 1) % batch_size == 0:
+                    self.backprop(training_rate, [d_errors[_] / batch_size for _ in d_errors])
+                    d_errors = [0] * len(self.layers[-1])
+            print("Epoch " + str(i + 1))
+
