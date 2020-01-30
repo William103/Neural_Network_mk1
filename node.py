@@ -29,7 +29,7 @@ class Node:
     # actually create the children. This would go in __init__, but then it would
     # be impossible to create a neuron without already having a neuron
     def create_children(self, children):
-        for child in self.children:
+        for child in children:
             weight = Connection(np.random.random() - 0.5)
             self.children.append((child, weight))
             child.parents.append((self, weight))
@@ -60,3 +60,4 @@ class Node:
             self.bias -= training_rate * self.delta
         for child in self.children:
             child[1].weight -= training_rate * self.activation * child[0].delta
+        self.input = 0

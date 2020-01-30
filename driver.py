@@ -5,7 +5,7 @@ def main():
             [d_sigmoid, d_sigmoid, d_sigmoid], squared_error, d_squared_error)
     inputs = [[0,0],[1,0],[0,1],[1,1]]
     outputs = [[0],[1],[1],[0]]
-    test.train(inputs, outputs, 0.1, 1000, 4)
+    test.train(inputs, outputs, 0.1, 10000, 4)
     for inpt in inputs:
         print(test.prop(inpt))
 

@@ -17,7 +17,7 @@ def squared_error(y_hat, y):
     return (y_hat - y) * (y_hat - y)
 
 def d_squared_error(y_hat, y):
-    return 2 * (y - y_hat)
+    return 2 * (y_hat - y)
 
 # Simple Feed Forward Neural Network
 class FeedForwardNetwork:
