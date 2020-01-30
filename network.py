@@ -4,6 +4,12 @@ from node import *
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+def itself(x):
+    return x
+
+def d_itself(x):
+    return 1
+
 def d_sigmoid(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
@@ -58,6 +64,7 @@ class FeedForwardNetwork:
     # also need a list of average derivatives of the cost function with respect
     # to the output nodes
     def backprop(self, training_rate, errors):
+        print(errors)
         for i in range(len(self.layers) - 1, -1, -1):
             if i == len(self.layers) - 1:
                 for j, neuron in enumerate(self.layers[i]):
@@ -73,19 +80,21 @@ class FeedForwardNetwork:
     #   epochs: the maximum number of epochs
     #   batch_size: how many training samples to evaluate before backpropagating
     def train(self, inputs, outputs, training_rate, epochs, batch_size):
-        assert(len(inputs) % batch_size == 0, "Batch size must divide inputs")
+        assert len(inputs) % batch_size == 0, "Batch size must divide inputs"
         for i in range(epochs):
             d_errors = [0] * len(self.layers[-1])
-            error = 0
+            total_error = 0
             for j in range(len(inputs)):
                 output = self.prop(inputs[j])
+                local_error = 0
                 for k in range(len(d_errors)):
                     d_errors[k] += self.d_f_cost(output[k], outputs[j][k])
-                    error += self.f_cost(output[k], outputs[j][k])
-                error /= len(d_errors)
+                    local_error += self.f_cost(output[k], outputs[j][k])
+                local_error /= len(d_errors)
+                total_error += local_error
                 if (j + 1) % batch_size == 0:
                     self.backprop(training_rate, [_ / batch_size for _ in d_errors])
                     d_errors = [0] * len(self.layers[-1])
-            error /= len(inputs)
-            print("Epoch " + str(i + 1) + ": Error: " + str(error))
+            total_error /= len(inputs)
+            print("Epoch " + str(i + 1) + ": Error: " + str(total_error))
 

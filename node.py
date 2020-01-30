@@ -19,7 +19,7 @@ class Node:
     def __init__(self, f_activation, d_f_activation):
         self.f_activation = f_activation
         self.d_f_activation = d_f_activation
-        self.bias = np.random.random() - 0.5
+        self.bias = np.random.random() / 1 - 0.5
         self.activation = 0
         self.input = 0
         self.delta = 0
@@ -30,7 +30,7 @@ class Node:
     # be impossible to create a neuron without already having a neuron
     def create_children(self, children):
         for child in children:
-            weight = Connection(np.random.random() - 0.5)
+            weight = Connection(np.random.random() / 1 - 0.5)
             self.children.append((child, weight))
             child.parents.append((self, weight))
 
@@ -55,6 +55,7 @@ class Node:
             self.delta = 0
             for child in self.children:
                 self.delta += child[0].delta * child[1].weight
+                print(child[0].delta)
         if self.d_f_activation is not None:
             self.delta *= self.d_f_activation(self.input + self.bias)
             self.bias -= training_rate * self.delta
