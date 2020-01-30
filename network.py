@@ -54,6 +54,9 @@ class FeedForwardNetwork:
             retval.append(neuron.activation)
         return retval
 
+    # backpropagate with a given training rate
+    # also need a list of average derivatives of the cost function with respect
+    # to the output nodes
     def backprop(self, training_rate, errors):
         for i in range(len(self.layers) - 1, -1, -1):
             if i == len(self.layers) - 1:
@@ -63,16 +66,26 @@ class FeedForwardNetwork:
                 for neuron in self.layers[i]:
                     neuron.backprop(False, 0, training_rate)
 
+    # train the network based on various parameters
+    #   inputs: a list of inputs to the network
+    #   outputs: a corresponding list of outputs
+    #   training_rate: the number the gradient gets multiplied by
+    #   epochs: the maximum number of epochs
+    #   batch_size: how many training samples to evaluate before backpropagating
     def train(self, inputs, outputs, training_rate, epochs, batch_size):
         assert(len(inputs) % batch_size == 0, "Batch size must divide inputs")
         for i in range(epochs):
             d_errors = [0] * len(self.layers[-1])
+            error = 0
             for j in range(len(inputs)):
                 output = self.prop(inputs[j])
                 for k in range(len(d_errors)):
                     d_errors[k] += self.d_f_cost(output[k], outputs[j][k])
+                    error += self.f_cost(output[k], outputs[j][k])
+                error /= len(d_errors)
                 if (j + 1) % batch_size == 0:
-                    self.backprop(training_rate, [d_errors[_] / batch_size for _ in d_errors])
+                    self.backprop(training_rate, [_ / batch_size for _ in d_errors])
                     d_errors = [0] * len(self.layers[-1])
-            print("Epoch " + str(i + 1))
+            error /= len(inputs)
+            print("Epoch " + str(i + 1) + ": Error: " + str(error))
 
