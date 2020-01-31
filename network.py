@@ -63,7 +63,7 @@ class FeedForwardNetwork:
     # propagate forwards and backwards
     def prop_to_and_fro(self, x, y, training_rate):
         y_hat = self.prop(x)
-        self.backprop(y_hat, y, training_rate)
+        self.backprop(y, y_hat, training_rate)
         return y_hat
 
     # backpropagate with a given training rate
@@ -77,6 +77,9 @@ class FeedForwardNetwork:
             else:
                 for neuron in self.layers[i]:
                     neuron.backprop(False, 0, training_rate)
+        for layer in self.layers:
+            for neuron in layer:
+                neuron.delta = 0
 
     # apply the changes based on data gathered during backpropagation
     def update(self, training_rate, batch_size):

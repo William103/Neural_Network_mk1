@@ -52,13 +52,13 @@ class Node:
     def backprop(self, is_last_layer, d_error, training_rate):
         # self.delta is the chain rule product up to the given neuron
         if is_last_layer:
-            self.delta += d_error * self.d_f_activation(self.input + self.bias)
+            self.delta = d_error * self.d_f_activation(self.input + self.bias)
         else:
-            total = 0
+            self.delta = 0
             for child in self.children:
-                total += child[0].delta * child[1].weight
+                self.delta += child[0].delta * child[1].weight
             if self.d_f_activation is not None:
-                self.delta += total * self.d_f_activation(self.input + self.bias)
+                self.delta *= self.d_f_activation(self.input + self.bias)
         if self.f_activation is not None:
             self.deltabias -= training_rate * self.delta
         for parent in self.parents:
@@ -68,7 +68,6 @@ class Node:
 
     # update the weights and biase
     def update(self, batch_size):
-        self.delta = 0
         if self.f_activation is not None:
             self.bias += self.deltabias / batch_size
             for parent, weight in self.parents:
