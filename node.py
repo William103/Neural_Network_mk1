@@ -47,18 +47,24 @@ class Node:
 
     # d_error is the derivative of the cost function with respect to the
     # activation of the output neuron
-    def backprop(self, is_last_layer, d_error, training_rate):
+    def backprop(self, is_last_layer, d_error):
         # self.delta is the chain rule product up to the given neuron
         if is_last_layer:
-            self.delta = d_error
+            self.delta += d_error * self.d_f_activation(self.input + self.bias)
         else:
-            self.delta = 0
+            total = 0
             for child in self.children:
-                self.delta += child[0].delta * child[1].weight
-                print(child[0].delta)
-        if self.d_f_activation is not None:
-            self.delta *= self.d_f_activation(self.input + self.bias)
-            self.bias -= training_rate * self.delta
-        for child in self.children:
-            child[1].weight -= training_rate * self.activation * child[0].delta
+                total += child[0].delta * child[1].weight
+            if self.d_f_activation is not None:
+                self.delta += total * self.d_f_activation(self.input + self.bias)
         self.input = 0
+        self.activation = 0
+
+    # update the weights and biase
+    def update(self, training_rate, batch_size):
+        self.delta /= batch_size
+        if self.f_activation is not None:
+            self.bias -= training_rate * self.delta
+        for parent in self.parents:
+            parent[1].weight -= training_rate * parent[0].activation * self.delta
+        self.delta = 0

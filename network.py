@@ -60,18 +60,29 @@ class FeedForwardNetwork:
             retval.append(neuron.activation)
         return retval
 
+    # propagate forwards and backwards
+    def prop_to_and_fro(self, x, y):
+        y_hat = self.prop(x)
+        self.backprop(y_hat, y)
+        return y_hat
+
     # backpropagate with a given training rate
     # also need a list of average derivatives of the cost function with respect
     # to the output nodes
-    def backprop(self, training_rate, errors):
-        print(errors)
+    def backprop(self, y, y_hat):
         for i in range(len(self.layers) - 1, -1, -1):
             if i == len(self.layers) - 1:
                 for j, neuron in enumerate(self.layers[i]):
-                    neuron.backprop(True, errors[j], training_rate)
+                    neuron.backprop(True, self.d_f_cost(y_hat[j], y[j]))
             else:
                 for neuron in self.layers[i]:
-                    neuron.backprop(False, 0, training_rate)
+                    neuron.backprop(False, 0)
+
+    # apply the changes based on data gathered during backpropagation
+    def update(self, training_rate, batch_size):
+        for layer in self.layers[1:]:
+            for neuron in layer:
+                neuron.update(training_rate, batch_size)
 
     # train the network based on various parameters
     #   inputs: a list of inputs to the network
@@ -82,19 +93,18 @@ class FeedForwardNetwork:
     def train(self, inputs, outputs, training_rate, epochs, batch_size):
         assert len(inputs) % batch_size == 0, "Batch size must divide inputs"
         for i in range(epochs):
-            d_errors = [0] * len(self.layers[-1])
             total_error = 0
             for j in range(len(inputs)):
-                output = self.prop(inputs[j])
+                output = self.prop_to_and_fro(inputs[j], outputs[j])
+                print(inputs[j], output)
                 local_error = 0
-                for k in range(len(d_errors)):
-                    d_errors[k] += self.d_f_cost(output[k], outputs[j][k])
+                for k in range(len(output)):
                     local_error += self.f_cost(output[k], outputs[j][k])
-                local_error /= len(d_errors)
+                local_error /= len(output)
                 total_error += local_error
                 if (j + 1) % batch_size == 0:
-                    self.backprop(training_rate, [_ / batch_size for _ in d_errors])
-                    d_errors = [0] * len(self.layers[-1])
+                    self.update(training_rate, batch_size)
             total_error /= len(inputs)
             print("Epoch " + str(i + 1) + ": Error: " + str(total_error))
+            #input()
 
