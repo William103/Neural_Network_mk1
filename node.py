@@ -3,6 +3,7 @@ import numpy as np
 class Connection:
     def __init__(self, weight):
         self.weight = weight
+        self.deltaweight = 0
 
 # General node class to be used for normal neural networks, NEAT, or RNNs
 class Node:
@@ -23,6 +24,7 @@ class Node:
         self.activation = 0
         self.input = 0
         self.delta = 0
+        self.deltabias = 0
         self.children = []
         self.parents = []
 
@@ -47,7 +49,7 @@ class Node:
 
     # d_error is the derivative of the cost function with respect to the
     # activation of the output neuron
-    def backprop(self, is_last_layer, d_error):
+    def backprop(self, is_last_layer, d_error, training_rate):
         # self.delta is the chain rule product up to the given neuron
         if is_last_layer:
             self.delta += d_error * self.d_f_activation(self.input + self.bias)
@@ -57,14 +59,19 @@ class Node:
                 total += child[0].delta * child[1].weight
             if self.d_f_activation is not None:
                 self.delta += total * self.d_f_activation(self.input + self.bias)
+        if self.f_activation is not None:
+            self.deltabias -= training_rate * self.delta
+        for parent in self.parents:
+            parent[1].deltaweight -= training_rate * parent[0].activation * self.delta
         self.input = 0
         self.activation = 0
 
     # update the weights and biase
-    def update(self, training_rate, batch_size):
-        self.delta /= batch_size
-        if self.f_activation is not None:
-            self.bias -= training_rate * self.delta
-        for parent in self.parents:
-            parent[1].weight -= training_rate * parent[0].activation * self.delta
+    def update(self, batch_size):
         self.delta = 0
+        if self.f_activation is not None:
+            self.bias += self.deltabias / batch_size
+            for parent, weight in self.parents:
+                weight.weight += weight.deltaweight / batch_size
+                weight.deltaweight = 0
+        self.deltabias = 0

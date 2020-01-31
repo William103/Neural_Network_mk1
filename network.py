@@ -61,28 +61,28 @@ class FeedForwardNetwork:
         return retval
 
     # propagate forwards and backwards
-    def prop_to_and_fro(self, x, y):
+    def prop_to_and_fro(self, x, y, training_rate):
         y_hat = self.prop(x)
-        self.backprop(y_hat, y)
+        self.backprop(y_hat, y, training_rate)
         return y_hat
 
     # backpropagate with a given training rate
-    # also need a list of average derivatives of the cost function with respect
     # to the output nodes
-    def backprop(self, y, y_hat):
+    def backprop(self, y, y_hat, training_rate):
         for i in range(len(self.layers) - 1, -1, -1):
             if i == len(self.layers) - 1:
                 for j, neuron in enumerate(self.layers[i]):
-                    neuron.backprop(True, self.d_f_cost(y_hat[j], y[j]))
+                    neuron.backprop(True, self.d_f_cost(y_hat[j], y[j]),
+                            training_rate)
             else:
                 for neuron in self.layers[i]:
-                    neuron.backprop(False, 0)
+                    neuron.backprop(False, 0, training_rate)
 
     # apply the changes based on data gathered during backpropagation
     def update(self, training_rate, batch_size):
         for layer in self.layers[1:]:
             for neuron in layer:
-                neuron.update(training_rate, batch_size)
+                neuron.update(batch_size)
 
     # train the network based on various parameters
     #   inputs: a list of inputs to the network
@@ -93,9 +93,13 @@ class FeedForwardNetwork:
     def train(self, inputs, outputs, training_rate, epochs, batch_size):
         assert len(inputs) % batch_size == 0, "Batch size must divide inputs"
         for i in range(epochs):
+            data = list(zip(inputs, outputs))
+            np.random.shuffle(data)
+            inputs, outputs = zip(*data)
             total_error = 0
             for j in range(len(inputs)):
-                output = self.prop_to_and_fro(inputs[j], outputs[j])
+                output = self.prop_to_and_fro(inputs[j], outputs[j],
+                        training_rate)
                 print(inputs[j], output)
                 local_error = 0
                 for k in range(len(output)):
