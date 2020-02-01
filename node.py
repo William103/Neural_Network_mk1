@@ -17,22 +17,23 @@ class Node:
     #                                well as the weight to the node
     #             parents:        a list of tuples containing the parent node as
     #                                well as the weight to the node
-    def __init__(self, f_activation, d_f_activation):
+    def __init__(self, f_activation, d_f_activation, random_limit):
         self.f_activation = f_activation
         self.d_f_activation = d_f_activation
-        self.bias = np.random.random() / 1 - 0.5
+        self.bias = (np.random.random() - 0.5) * random_limit
         self.activation = 0
         self.input = 0
         self.delta = 0
         self.deltabias = 0
         self.children = []
         self.parents = []
+        self.random_limit = random_limit
 
     # actually create the children. This would go in __init__, but then it would
     # be impossible to create a neuron without already having a neuron
     def create_children(self, children):
         for child in children:
-            weight = Connection(np.random.random() / 1 - 0.5)
+            weight = Connection((np.random.random() - 0.5) * self.random_limit)
             self.children.append((child, weight))
             child.parents.append((self, weight))
 
@@ -65,6 +66,7 @@ class Node:
             parent[1].deltaweight -= training_rate * parent[0].activation * self.delta
         self.input = 0
         self.activation = 0
+        #print(self.delta)
 
     # update the weights and biase
     def update(self, batch_size):

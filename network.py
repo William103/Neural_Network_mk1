@@ -30,7 +30,8 @@ class FeedForwardNetwork:
     # architecture: a list describing the architecture
     # f_activations: a list of the activation functions
     # d_f_activations: a list of the derivatives of the activation functions
-    def __init__(self, architecture, f_activations, d_f_activations, f_cost, d_f_cost):
+    def __init__(self, architecture, f_activations, d_f_activations, f_cost,
+            d_f_cost, random_limit):
         self.layers = []
         self.d_f_cost = d_f_cost
         self.f_cost = f_cost
@@ -39,9 +40,9 @@ class FeedForwardNetwork:
         for i, layer in enumerate(architecture):
             if i > 0:
                 self.layers.append([Node(f_activations[i - 1], d_f_activations[i -
-                    1]) for _ in range(layer)])
+                    1], random_limit) for _ in range(layer)])
             else:
-                self.layers.append([Node(None, None) for _ in range(layer)])
+                self.layers.append([Node(None, None, random_limit) for _ in range(layer)])
         # actually create the network
         for i in range(len(self.layers) - 1):
             for child in self.layers[i]:
@@ -93,7 +94,7 @@ class FeedForwardNetwork:
     #   training_rate: the number the gradient gets multiplied by
     #   epochs: the maximum number of epochs
     #   batch_size: how many training samples to evaluate before backpropagating
-    def train(self, inputs, outputs, training_rate, epochs, batch_size):
+    def train(self, inputs, outputs, training_rate, epochs, batch_size, verbose):
         assert len(inputs) % batch_size == 0, "Batch size must divide inputs"
         for i in range(epochs):
             data = list(zip(inputs, outputs))
@@ -103,7 +104,8 @@ class FeedForwardNetwork:
             for j in range(len(inputs)):
                 output = self.prop_to_and_fro(inputs[j], outputs[j],
                         training_rate)
-                print(inputs[j], output)
+                if verbose and (i - 1) % 100 == 0:
+                    print(inputs[j], output)
                 local_error = 0
                 for k in range(len(output)):
                     local_error += self.f_cost(output[k], outputs[j][k])
@@ -112,6 +114,8 @@ class FeedForwardNetwork:
                 if (j + 1) % batch_size == 0:
                     self.update(training_rate, batch_size)
             total_error /= len(inputs)
-            print("Epoch " + str(i + 1) + ": Error: " + str(total_error))
+            if verbose and (i - 1) % 100 == 0:
+                print("Epoch " + str(i + 1) + ": Error: " + str(total_error))
+        return total_error
             #input()
 
