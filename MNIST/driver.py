@@ -21,7 +21,7 @@ def main():
     maxdex = 0
     maximum = -1
     print('Validating network')
-    for data_point in validation_data]:
+    for data_point in validation_data:
         output, error = net.prop_to_and_fro(data_point[0], data_point[1], 0)
         total_error += error
         if np.argmin(output) == np.argmin(data_point[1]):
