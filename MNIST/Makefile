@@ -3,4 +3,4 @@ TARGET=driver.py
 .PHONY: run
 
 run:
-	python.exe $(TARGET)
+	python3 $(TARGET)

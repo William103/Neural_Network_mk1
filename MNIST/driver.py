@@ -15,7 +15,7 @@ def main():
     training_rate = 0.1
     min_error = 0.001
     net = FeedForwardNetwork([784, 50, 50, 10], [sigmoid] * 3, [d_sigmoid] * 3, squared_error, d_squared_error, 10)
-    net.train_to_accuracy(training_data, validation_data, training_rate, min_error, batch_size, True)
+    net.train_to_accuracy(training_data, validation_data, training_rate, min_error, batch_size, False)
     correct = 0
     total_error = 0
     maxdex = 0
