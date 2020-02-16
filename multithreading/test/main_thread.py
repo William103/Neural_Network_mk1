@@ -1,4 +1,5 @@
 import network
+import manager
 import thread
 import threading
 import numpy as np
@@ -9,7 +10,6 @@ class main_thread(threading.Thread):
         self.barrier = threading.Barrier(num_threads)
         self.main_thread_event = threading.Event()
         self.worker_thread_event = threading.Event()
-        self.networks = [network.FeedForwardNetwork(architecture, f_activations, d_f_activations, f_cost, d_f_cost, random_limit)]
         self.worker_threads = []
         self.deltabiases = []
         self.deltaweights = []
@@ -18,6 +18,9 @@ class main_thread(threading.Thread):
         self.outputs = outputs
         self.num_threads = num_threads
         self.epochs = epochs
+        self.training_rate = training_rate
+        self.networks = [manager.train_nets(self.inputs, self.outputs, self.training_rate, 100, self.batch_size, 1,
+                random_limit, architecture, f_activations, d_f_activations, f_cost, d_f_cost, 100)]
         mutex1 = threading.Lock()
         mutex2 = threading.Lock()
         for layer in self.networks[0].layers:
@@ -28,7 +31,7 @@ class main_thread(threading.Thread):
         for i in range(num_threads - 1):
             self.networks.append(self.networks[0].copy())
         for i in range(num_threads):
-            self.worker_threads.append(thread.worker_thread(i, inputs, outputs, self.networks[i], training_rate, self.deltabiases, self.deltaweights, self.barrier, self.batch_size, self.num_threads, self.main_thread_event, self.worker_thread_event, mutex1, mutex2))
+            self.worker_threads.append(thread.worker_thread(i, inputs, outputs, self.networks[i], self.training_rate, self.deltabiases, self.deltaweights, self.barrier, self.batch_size, self.num_threads, self.main_thread_event, self.worker_thread_event, mutex1, mutex2))
 
     def run(self):
         barrier = threading.Barrier(self.num_threads)
@@ -38,7 +41,7 @@ class main_thread(threading.Thread):
             data = list(zip(self.inputs, self.outputs))
             np.random.shuffle(data)
             self.inputs, self.outputs = zip(*data)
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 print('Epoch #' + str(i))
             for j in range(len(self.inputs) // self.batch_size):
                 self.main_thread_event.clear()

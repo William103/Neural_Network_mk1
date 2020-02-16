@@ -9,11 +9,11 @@ def main():
     d_f_activations = [d_sigmoid] * 3
     f_cost = squared_error
     d_f_cost = d_squared_error
-    random_limit = 30
+    random_limit = 50
     num_threads = 4
-    training_rate = 10
+    training_rate = 5
     batch_size = 4
-    epochs = 500
+    epochs = 5000
     master_thread = main_thread(architecture, f_activations, d_f_activations, f_cost, d_f_cost, random_limit, num_threads, inputs, outputs, training_rate, batch_size, epochs)
     master_thread.start()
     master_thread.join()
